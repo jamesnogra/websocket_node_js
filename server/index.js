@@ -4,8 +4,8 @@ const wss = new WebSocket.Server({ port: 8082 })
 
 var players = []
 const gameInfos = []
-const timeToShowQuestions = 5 // Seconds to show question
-const timeRest = 5 // Seconds before showing next question
+const timeToShowQuestions = 15 // Seconds to show question
+const timeRest = 10 // Seconds before showing next question
 var questionTimer = 0
 var gameStoped = false
 
@@ -421,6 +421,6 @@ const people = [
 		'image': 'images/people/15.jpg',
 		'options': ['Pornstar', 'Nun', 'Both'],
 		'answer': myCipher('Both'),
-		'answerDescription': 'She\'s a devoted Catholic nun from Colombia. In 2019 she signed a multi-scene deal with BangBros.'
+		'answerDescription': 'Yudi Pineda is a devoted Catholic nun from Colombia. In 2019 she signed a multi-scene deal with BangBros.'
 	}
 ]
