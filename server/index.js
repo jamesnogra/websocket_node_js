@@ -1,15 +1,6 @@
-const fs = require('fs')
-const https = require('https')
 const WebSocket = require('ws')
 
-//CHANGE THE CERT FILE PATHS
-const server = https.createServer({
-	cert: fs.readFileSync('/etc/letsencrypt/live/game.iamcebu.com/fullchain.pem'),
-	key: fs.readFileSync('/etc/letsencrypt/live/game.iamcebu.com/privkey.pem')
-})
-const wss = new WebSocket.Server({ server })
-
-console.log("started web socket server...")
+const wss = new WebSocket.Server({ port: 8082 })
 
 var players = []
 const gameInfos = []
@@ -59,8 +50,6 @@ wss.on('connection', ws => {
 		sendToAll(dataInfo.code)
 	})
 })
-
-server.listen(8082)
 
 const sendToAll = (code) => {
 	const playersInRoom = players.filter(res => res.code === code)
