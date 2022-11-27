@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Websocket Game - Master</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no" />    
+	<!-- jQuery only -->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+	<!-- CSS only -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+	<!-- JavaScript Bundle with Popper -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+	<style>
+	</style>
+</head>
+<body>
+		
+	<div class="container">
+		<h1 class="text-center">Add/Delete Photos</h1>
+		<div>
+			<table id="entire-table" class="table table-bordered">
+				<thead>
+					<tr>
+						<th scope="col">ID</th>
+						<th scope="col">Answer</th>
+						<th scope="col">Photo</th>
+						<th scope="col">Actions</th>
+					</tr>
+				</thead>
+				<tbody id="table-contents"></tbody>
+			</table>
+		</div>
+	</div>
+
+	<script>
+		// Get code from the URL
+		const codeUrl = window.location.search.substr(1).split('&')[0].split('=')[1]
+		const masterCode = window.location.search.substr(1).split('&')[1].split('=')[1]
+		const enteredPassword = window.location.search.substr(1).split('&')[2].split('=')[1]
+
+		const ws = new WebSocket('ws://localhost:8082')
+		// Attempt to connect
+		ws.addEventListener('open', () => {
+			console.log('CONNECTED TO SERVER')
+			// Authenticate using master code
+			ws.send(JSON.stringify({
+				'info': 'LOGIN_MASTER',
+				'password': enteredPassword,
+				'code': masterCode
+			}))
+		})
+
+		// Wait for messages from server
+		ws.addEventListener('message', ({ data }) => {
+			const dataInfo = JSON.parse(data)
+			if (dataInfo.info === 'LOGIN_INFO' && dataInfo.code === masterCode) {
+				// Show the table
+				$('#entire-table').show()
+				// Get all photos
+				ws.send(JSON.stringify({
+					'info': 'GET_ALL_PHOTOS'
+				}))
+			}
+			if (dataInfo.info === 'ALL_PHOTOS') {
+				const dbPhotos = dataInfo.photos
+				$('#table-contents').html('')
+				for (let x=0; x<dbPhotos.length; x++) {
+					$('#table-contents').append('<tr id="photo-'+dbPhotos[x].id+'"><th scope="row">'+dbPhotos[x].id+'</th><td>'+dbPhotos[x].options+'</td><td><img src="'+dbPhotos[x].image+'" height="25px" /></td><td><button class="btn btn-danger btn-sm" onClick="deletePhoto('+dbPhotos[x].id+');">Delete</button></td></tr>')
+				}
+			}
+		})
+
+		$(document).ready(function() {
+			$('#entire-table').hide()
+		})
+
+		function deletePhoto(photoId) {
+			if (confirm('Are you sure you want to delete this photo?')) {
+				$('#photo-'+photoId).hide()
+				// Authenticate using master code
+				ws.send(JSON.stringify({
+					'info': 'DELETE_PHOTO',
+					'code': masterCode,
+					'photoId': photoId
+				}))
+			}
+		}
+	</script>
+
+</body>
+</html>

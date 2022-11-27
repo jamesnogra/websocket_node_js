@@ -53,12 +53,12 @@
 
 		// Add/Delete questions
 		$('#add-button').click(function() {
-			window.location.href = 'photos.html?masterCode=' + connectionCode;
+			window.location.href = 'photos.html?codeUrl=' + codeUrl + '&masterCode=' + connectionCode + '&enteredPassword=' + $('#password').val()
 		})
 
 		// Create new game room
 		$('#create-button').click(function() {
-			window.location.href = 'index.html?codeUrl=' + codeUrl + '&masterCode=' + connectionCode;
+			window.location.href = 'index.html?codeUrl=' + codeUrl + '&masterCode=' + connectionCode
 		})
 
 		// Wait for messages from server

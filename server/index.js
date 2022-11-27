@@ -12,7 +12,7 @@ const timeRest = 10 // Seconds before showing next question
 var questionTimer = 0
 var gameStoped = false
 const masterCodeMain = '123456x'
-const photosFromDb = []
+let photosFromDb = []
 
 // For connecting to MySQL database
 var con = mysql.createConnection({
@@ -24,18 +24,7 @@ var con = mysql.createConnection({
 con.connect(function(err) {
 	if (err) throw err
 	console.log('Connected to MySQL database...')
-	con.query("SELECT * FROM photos", function (err, result, fields) {
-		if (err) throw err
-		for (let x=0; x<result.length; x++) {
-			let tempOptions = result[x].options.split(',')
-			photosFromDb.push({
-				'image': result[x].image,
-				'options': result[x].options.split(','),
-				'answer': myCipher(result[x].answer),
-				'answerDescription': result[x].answer_description
-			})
-		}
-	})
+	getAllImageFromDb()
 })
 
 wss.on('connection', ws => {
@@ -78,12 +67,15 @@ wss.on('connection', ws => {
 		if (dataInfo.info === 'LOGIN_MASTER') {
 			wss.clients.forEach(function each(client) {
 				if (dataInfo.password === masterCodeMain) {
-					allowedMasterCodes.push(dataInfo.code)
+					if (!allowedMasterCodes.includes(dataInfo.code)) {
+						allowedMasterCodes.push(dataInfo.code)
+					}
 					client.send(JSON.stringify({
 						'info': 'LOGIN_INFO',
 						'response': true,
 						'code': dataInfo.code
 					}))
+					console.log(allowedMasterCodes)
 				} else {
 					client.send(JSON.stringify({
 						'info': 'LOGIN_INFO',
@@ -91,6 +83,20 @@ wss.on('connection', ws => {
 						'code': dataInfo.code
 					}))
 				}
+			})
+		}
+		if (dataInfo.info === 'GET_ALL_PHOTOS') {
+			wss.clients.forEach(function each(client) {
+				client.send(JSON.stringify({
+					'info': 'ALL_PHOTOS',
+					'photos': photosFromDb
+				}))
+			})
+		}
+		if (dataInfo.info === 'DELETE_PHOTO') {
+			con.query("DELETE FROM photos WHERE id="+dataInfo.photoId, function (err, result, fields) {
+				if (err) throw err
+				getAllImageFromDb()
 			})
 		}
 		// Send to all the updated game info and players
@@ -226,6 +232,23 @@ function sleep(time, callback) {
 		;
 	}
 	callback();
+}
+
+function getAllImageFromDb() {
+	photosFromDb = []
+	con.query("SELECT * FROM photos", function (err, result, fields) {
+		if (err) throw err
+		for (let x=0; x<result.length; x++) {
+			let tempOptions = result[x].options.split(',')
+			photosFromDb.push({
+				'id': result[x].id,
+				'image': result[x].image,
+				'options': result[x].options.split(','),
+				'answer': myCipher(result[x].answer),
+				'answerDescription': result[x].answer_description
+			})
+		}
+	})
 }
 
 // For encrypting the answer
