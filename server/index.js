@@ -1,13 +1,16 @@
 const WebSocket = require('ws')
 
 const wss = new WebSocket.Server({ port: 8082 })
+console.log('SERVER RUNNING AT PORT 8082')
 
 var players = []
 const gameInfos = []
+const allowedMasterCodes = []
 const timeToShowQuestions = 15 // Seconds to show question
 const timeRest = 10 // Seconds before showing next question
 var questionTimer = 0
 var gameStoped = false
+const masterCodeMain = '123456x'
 
 wss.on('connection', ws => {
 	console.log('NEW CLIENT CONNECTED');
@@ -45,6 +48,24 @@ wss.on('connection', ws => {
 					client.send(JSON.stringify({'info': 'GAME_STOPPED', 'code': dataInfo.code}))
 				})
 			}
+		}
+		if (dataInfo.info === 'LOGIN_MASTER') {
+			wss.clients.forEach(function each(client) {
+				if (dataInfo.password === masterCodeMain) {
+					allowedMasterCodes.push(dataInfo.code)
+					client.send(JSON.stringify({
+						'info': 'LOGIN_INFO',
+						'response': true,
+						'code': dataInfo.code
+					}))
+				} else {
+					client.send(JSON.stringify({
+						'info': 'LOGIN_INFO',
+						'response': false,
+						'code': dataInfo.code
+					}))
+				}
+			})
 		}
 		// Send to all the updated game info and players
 		sendToAll(dataInfo.code)
@@ -167,7 +188,7 @@ const addPointToPlayer = (userInfo) => {
 }
 
 const isMasterCode = (masterCode) => {
-	if (masterCode === 'thequickbrownfoxjumpsoverthelazydog123') {
+	if (allowedMasterCodes.includes(masterCode)) {
 		return true
 	}
 	return false

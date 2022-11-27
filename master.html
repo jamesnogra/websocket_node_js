@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Websocket Game - Master</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no" />    
+	<!-- jQuery only -->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+	<!-- CSS only -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+	<!-- JavaScript Bundle with Popper -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+	<style>
+	</style>
+</head>
+<body>
+		
+	<div class="container">
+		<h1 class="text-center">Create New Game</h1>
+		<div id="content-login" class="text-center">
+			<p><input type="password" id="password" class="form-control" /></p>
+			<button type="button" class="btn btn-primary" id="login-button">Login</button>
+		</div>
+		<div id="content-main" class="text-center">
+			<button type="button" class="btn btn-primary" id="create-button">Create New Room</button>
+		</div>
+	</div>
+
+	<script>
+		const connectionCode = (Math.random() + 1).toString(36).substring(7).toUpperCase()
+
+		$(document).ready(function() {
+			$('#content-main').hide()
+		})
+
+		const ws = new WebSocket('ws://localhost:8082')
+		// Attempt to connect
+		ws.addEventListener('open', () => {
+			console.log('CONNECTED TO SERVER')
+		})
+
+		// On login 
+		$('#login-button').click(function() {
+			const enteredPassword = $('#password').val()
+			ws.send(JSON.stringify({
+				'info': 'LOGIN_MASTER',
+				'password': enteredPassword,
+				'code': connectionCode
+			}))
+		})
+
+		// Create new game room
+		$('#create-button').click(function() {
+			window.location.href = 'index.html?codeUrl=PLACES&masterCode=' + connectionCode;
+		})
+
+		// Wait for messages from server
+		ws.addEventListener('message', ({ data }) => {
+			const dataInfo = JSON.parse(data)
+			if (dataInfo.info === 'LOGIN_INFO' && dataInfo.code === connectionCode) {
+				if (dataInfo.response) {
+					$('#content-main').show()
+					$('#content-login').hide()
+				}
+			}
+		})
+	</script>
+
+</body>
+</html>
