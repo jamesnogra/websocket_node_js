@@ -1,4 +1,5 @@
 const WebSocket = require('ws')
+const mysql = require('mysql')
 
 const wss = new WebSocket.Server({ port: 8082 })
 console.log('SERVER RUNNING AT PORT 8082')
@@ -11,6 +12,31 @@ const timeRest = 10 // Seconds before showing next question
 var questionTimer = 0
 var gameStoped = false
 const masterCodeMain = '123456x'
+const photosFromDb = []
+
+// For connecting to MySQL database
+var con = mysql.createConnection({
+	host: '129.146.130.43',
+	user: 'websocket_game_user',
+	password: '*eXd6av)Z.UV74LZ',
+	database: 'websocket_game'
+})
+con.connect(function(err) {
+	if (err) throw err
+	console.log('Connected to MySQL database...')
+	con.query("SELECT * FROM photos", function (err, result, fields) {
+		if (err) throw err
+		for (let x=0; x<result.length; x++) {
+			let tempOptions = result[x].options.split(',')
+			photosFromDb.push({
+				'image': result[x].image,
+				'options': result[x].options.split(','),
+				'answer': myCipher(result[x].answer),
+				'answerDescription': result[x].answer_description
+			})
+		}
+	})
+})
 
 wss.on('connection', ws => {
 	console.log('NEW CLIENT CONNECTED');
@@ -161,7 +187,7 @@ const createGameInfo = (code) => {
 		'code': code,
 		'questionIndex': -1,
 		'status': 'STANDBY',
-		'images': (code === 'PEOPLE') ? people : ((code === 'PLACES') ? places : trialRun)
+		'images': (code === 'PEOPLE') ? people : ((code === 'PLACES') ? places : photosFromDb)
 	})
 }
 

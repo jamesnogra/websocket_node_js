@@ -108,6 +108,7 @@
 		<button type="button" id="join-button" class="btn btn-success">JOIN</button>
 		<button type="button" id="start-button" class="btn btn-success">START</button>
 		<button type="button" id="stop-button" class="btn btn-danger">STOP</button>
+		<input type="text" id="share-url" class="form-control" />
 	</h1>
 	<div id="players-list"></div>
 	<div class="text-center" id="timer"></div>
@@ -121,6 +122,7 @@
 		const codeUrl = window.location.search.substr(1).split('&')[0].split('=')[1]
 		if (codeUrl === undefined || codeUrl.length === 0) {
 			alert('Join a room from an invite...')
+			window.location.href = 'master.html'
 			throw new Error('Join a room from an invite...')
 		}
 		// Attempt to get master code if there's any
@@ -252,6 +254,9 @@
 				if (sortedPlayers[x].name === name && sortedPlayers[x].master && !gameStarted) {
 					$('#start-button').show()
 					$('#stop-button').show()
+					// Put value to shareable URL
+					$('#share-url').val(window.location.protocol + '//' + window.location.host + window.location.pathname + '?codeUrl=' + codeUrl)
+					$('#share-url').show()
 				}
 			}
 		}
@@ -320,6 +325,8 @@
 			$('#timer').hide()
 			// Hide image display
 			$('#image-display').hide()
+			// Hide share url
+			$('#share-url').hide()
 			// To start the game
 			$('#start-button').click(() => {
 				// Hide again the score board when starting

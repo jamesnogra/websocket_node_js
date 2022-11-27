@@ -17,16 +17,19 @@
 	<div class="container">
 		<h1 class="text-center">Create New Game</h1>
 		<div id="content-login" class="text-center">
+			<p>Password</p>
 			<p><input type="password" id="password" class="form-control" /></p>
 			<button type="button" class="btn btn-primary" id="login-button">Login</button>
 		</div>
 		<div id="content-main" class="text-center">
 			<button type="button" class="btn btn-primary" id="create-button">Create New Room</button>
+			<button type="button" class="btn btn-primary" id="add-button">Add/Delete Questions</button>
 		</div>
 	</div>
 
 	<script>
 		const connectionCode = (Math.random() + 1).toString(36).substring(7).toUpperCase()
+		const codeUrl = (Math.random() + 1).toString(36).substring(7).toUpperCase()
 
 		$(document).ready(function() {
 			$('#content-main').hide()
@@ -48,9 +51,14 @@
 			}))
 		})
 
+		// Add/Delete questions
+		$('#add-button').click(function() {
+			window.location.href = 'photos.html?masterCode=' + connectionCode;
+		})
+
 		// Create new game room
 		$('#create-button').click(function() {
-			window.location.href = 'index.html?codeUrl=PLACES&masterCode=' + connectionCode;
+			window.location.href = 'index.html?codeUrl=' + codeUrl + '&masterCode=' + connectionCode;
 		})
 
 		// Wait for messages from server
